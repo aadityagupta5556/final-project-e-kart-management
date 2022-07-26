@@ -4,7 +4,7 @@ const bcrypt = require('bcrypt');
 const upload = require('../.aws/config')
 const mongoose = require('mongoose');
 const validation = require("../validations/validator.js")
-const passValidator = require("pass-validator")
+const passValidator = require("password-validator")
 
 
 
@@ -88,50 +88,73 @@ const createUser = async function (req, res) {
 
 
 
-const loginUser= async function(req,res){
+const loginUser = async function (req, res) {
     try {
-    let data = req.body
-    
-    
-    if (!validation.isValidBody(data))
-        return res.status(400).send({ status: false, message: " Provide your login credentials" })
-    
-    if (!validation.isValid(data.email))
-        return res.status(400).send({ status: false, Message: "Please provide your Email" })
-    
-    if (!validation.isValid(data.password))
-        return res.status(400).send({ status: false, message: "Please provide your Password" })
-    
-        const user = await userModel.findOne({ email: data.email, password: data.password });
-    
-        if(!user) {
-            return res.status(401).send({status: false , message:"Invalid login credentials"});
+
+        let email = req.body.email;
+        let password = req.body.password;
+
+        if (Object.keys(req.body).length == 0) {
+            return res.status(400).send({ status: false, Msg: "Body cannot be empty" })
         }
-         
-         let hashedPassword = user.password
-         const encryptedPassword= await bcrypt.compare(password, hashedPassword)
-    
-         if(! encryptedPassword)
-          return res.status(401).send({ status: false , message : "Login failed"})
-    
-     // creating jwt token through userId.
-     const userId= user._id
-      const token = jwt.sign({
-        userId: userId,
-        iat: Math.floor(Date.now()/1000),
-        exp :Math.floor(Date.now()/1000+3600*24*7) // setting token expiry time limit.
-      })
-      return res.status(200).send({status:true, message:"user login successful", data: {userId, token}});
-    }catch(err){
-        return res.status(500).send({ status:false, message:err.message});
-    
+
+        if (!password) {
+            return res.status(400).send({ status: false, message: "Password is required" })
+        }
+        let user = await userModel.findOne({ email: email});
+        if (!user) {
+            return res.status(401).send({ status: false, message: "Email Is incorrect" });
+        }
+
+        let iat = Math.floor(Date.now() / 1000)
+        let exp = iat + (60 * 60)
+        let token = jwt.sign(
+            { _id: email._id, 
+            iat: iat, 
+            exp: exp 
+        }, "group58");
+        res.setHeader("x-api-key", token);
+
+        res.status(201).send({status: true, message: "User login successfull",data: {userId:user._id,token: token}});
+
+    } catch (err) {
+        res.status(500).send({ staus: false, msg: err.message })
     }
+}
+
+
+
+const getUser = async function (req, res) {
+    try {
+        const userParams = req.params.userId.trim()
+        //validating userId
+        if (!validation.userIdMatch(userParams)) {
+            return res.status(400).send({ status: false, message: "Inavlid userId Please enter a correct objectId" })
+        }
+        //finding user in db
+        const findUser = await userModel.findOne({ _id: userParams })
+        if (!findUser) {
+            return res.status(404).send({ status: false, message: `User does not exist.` })
+        }
+        //Authorization
+        if ((userParams == req.userId)) { 
+            return res.status(200).send({ status: true, msg: "User profile details", data: findUser })
+
+        }
+        else {
+            return res.status(403).send({ Status: false, msg: "User not authorized to access requested id" })
+        }
+
+    } catch (err) {
+        return res.status(500).send({ status: false, msg: err.message })
     }
+}
 
 
 
 
-    
+
+
     
 
 
@@ -186,4 +209,4 @@ const loginUser= async function(req,res){
     }
 
 
-module.exports ={createUser, loginUser, updateUser}
+module.exports ={createUser, loginUser, getUser, updateUser}
