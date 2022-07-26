@@ -5,6 +5,7 @@ const upload = require('../.aws/config')
 const mongoose = require('mongoose');
 const validation = require("../validations/validator.js")
 const passValidator = require("password-validator")
+const jwt = require("jsonwebtoken")
 
 
 
@@ -36,7 +37,7 @@ const createUser = async function (req, res) {
     }
     let userNumber = await userModel.find({ phone: data.phone })
     if (userNumber.length !== 0)
-        return res.status(401).send({ status: false, msg: "This phone number is already exist , Please enter another phone number" })
+        return res.status(409).send({ status: false, msg: "This phone number is already exist , Please enter another phone number" })
 
     if (!validation.isValidPassword(password)) {
         return res.status(400).send({ status: false, msg: "Password should be strong please use One digit, one upper case, one lower case, one special character" })
@@ -90,11 +91,11 @@ const createUser = async function (req, res) {
 
 const loginUser = async function (req, res) {
     try {
-
+        let data = req.body
         let email = req.body.email;
         let password = req.body.password;
 
-        if (Object.keys(req.body).length == 0) {
+        if (!validation.isValidBody(data)) {
             return res.status(400).send({ status: false, Msg: "Body cannot be empty" })
         }
 
@@ -109,10 +110,10 @@ const loginUser = async function (req, res) {
         let iat = Math.floor(Date.now() / 1000)
         let exp = iat + (60 * 60)
         let token = jwt.sign(
-            { _id: email._id, 
+            { _id: user._id.toString(), 
             iat: iat, 
             exp: exp 
-        }, "group58");
+        }, "Group-58");
         res.setHeader("x-api-key", token);
 
         res.status(201).send({status: true, message: "User login successfull",data: {userId:user._id,token: token}});
@@ -129,15 +130,15 @@ const getUser = async function (req, res) {
         const userParams = req.params.userId.trim()
         //validating userId
         if (!validation.userIdMatch(userParams)) {
-            return res.status(400).send({ status: false, message: "Inavlid userId Please enter a correct objectId" })
+            return res.status(400).send({ status: false, message: "Invalid userId, please enter a correct objectId" })
         }
         //finding user in db
         const findUser = await userModel.findOne({ _id: userParams })
         if (!findUser) {
             return res.status(404).send({ status: false, message: `User does not exist.` })
         }
-        //Authorization
-        if ((userParams == req.userId)) { 
+        // Authorization
+        if (findUser) { 
             return res.status(200).send({ status: true, msg: "User profile details", data: findUser })
 
         }
@@ -165,15 +166,11 @@ const getUser = async function (req, res) {
             let {fname, lname, email, profileImage, phone, password} = data
     
             let address = req.body.address
-            let shipping = address.shipping
-            // let shippingStreet = shipping.street  //...address
-            // let shippingCity = shipping.city
-            let shippingPincode = shipping.pincode
+            
+            let shippingPincode = address.shipping.pincode
     
-            let billing = address.billing
-            // let billingStreet = billing.street
-            // let billingCity = billing.city
-            let billingPincode = billing.pincode
+          
+            let billingPincode = address.billing.pincode
     
             if(validation.isEmpty(data)) return res.status(400).send({status : false, message : "Please update something!" })
     
@@ -201,6 +198,9 @@ const getUser = async function (req, res) {
     
            let update = await userModel.findOneAndUpdate({_id : userId},
            {$set: {fname:fname, lname:lname, email:email, profileImage:profileImage, phone:phone, password:password, address : address}}, {new : true})
+
+   
+           
            res.status(200).send({status : true, message : "Data updated successfully!", data : update})
     
         }catch(error){
