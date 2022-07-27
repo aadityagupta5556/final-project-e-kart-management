@@ -36,7 +36,7 @@ const isValidMobileNum = function (value) {
 };
 
 const isValidPinCode = (value) => {
-    const regEx = /^\s*([0-9]){6}\s*$/
+    const regEx = /^\s*([1-9]){6}\s*$/
     const result = regEx.test(value)
     return result
 }
@@ -59,4 +59,26 @@ const userIdMatch = function (value){
     return user
 }
 
-module.exports = {isValid, isValidBody, alphabetTestOfString, isValidSyntaxOfEmail, isValidMobileNum, isValidPinCode, isValidPassword, validateEmail, userIdMatch}
+const onlyNumbers = function (value){
+    let user = /^[0-9]+$/.test(value)
+    return user
+}
+
+const isValidPrice = (value) => {
+    const regEx = /^\d+(?:\.\d+)?(?:,\d+(?:\.\d+)?)*$/
+    const result = regEx.test(value)
+    return result
+};
+
+const cityRegex = function (value){
+    let user = /^[a-zA-Z]+$/.test(value)
+    return user
+}
+
+const streetRegex = function (value){
+    let user =  /^[#.0-9a-zA-Z\s,-]+$/.test(value)
+    return user
+}
+
+
+module.exports = {isValid, isValidBody, alphabetTestOfString, isValidSyntaxOfEmail, isValidMobileNum, isValidPinCode, isValidPassword, validateEmail, userIdMatch, onlyNumbers, isValidPrice, cityRegex, streetRegex}

@@ -1,34 +1,55 @@
-const JWT = require("jsonwebtoken")
-const userModel = require("../models/userModel")
+const userModel = require('../models/userModel.js')
+const jwt =require("jsonwebtoken");
+const mongoose=require("mongoose")
 
-const authorize= async function(req,res,next){
+
+const authentication = function(req,res,next)
+{
     try{
-        const btoken = req.headers.authorization
-        let token = btoken.split(" ")[1]
-        let userId = req.params.userId
+    let token = req.header("Authorization","Bearer Token");
+    
 
-        if(!token) return res.status(400).send({status: false, msg : "Please provide a token!"})
+    if(!token)return res.status(401).send({status:false, message:"Please enter token in bearer token"});
+    let splittoken=token.split(" ")
 
-        let decodedToken = JWT.verify(token, "Group-58")
-        if(!decodedToken) return res.status(400).send({status : false, msg : "Token should be present!"})
+        jwt.verify(splittoken[1],"group58",(error)=>{
+            if(error){
+            const message =error.message==="jwt expired" ?"token is expired plz login again" :"plz rechecked your token "
+            return res.status(401).send({status:false, message});
+            }
+       
+            next();
+         });
+    }
+    catch(error){
+        res.status(500).send({status:false, message:error.message});
 
-        let userLoggedIn = decodedToken.userId
-
-        let findUserId = await userModel.findById(userId)
-        if(!findUserId) return res.status(404).send({status : false, msg : "No book found with this bookId"})
-
-        let newUserId = findUserId.userId.toString()
-
-
-        if(userLoggedIn !== newUserId) return res.status(401).send({status : false, msg : "You're not authorized!"})
-
-        next()
-
-
-        
-    }catch(error){
-        res.status(500).send({status:false ,message:error})
     }
 }
 
-module.exports = {authorize}
+
+
+
+
+const authorization= async function(req,res,next){
+    try{
+    let token = req.header("Authorization","Bearer Token");
+    let splittoken=token.split(" ")
+    let decodedtoken= jwt.verify(splittoken[1],"group58")
+    let userId=req.params.userId
+    
+    if(!mongoose.isValidObjectId(userId)) return res.status(400).send({status :false,message: "userId is invalid"});
+
+    let user=await userModel.findOne({_id:userId})
+    if(!user)return res.status(400).send({status :false,message: "user doesnot exist with this id"});
+    if(decodedtoken.userId!=user._id)return res.status(403).send({status :false,message: "unauthorized acess"});
+
+    next()
+    }
+    catch(error){
+        res.status(500).send({status:false, message:error.message});
+
+    }
+}
+
+module.exports = {authentication, authorization}

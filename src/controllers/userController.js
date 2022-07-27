@@ -125,6 +125,8 @@ const loginUser = async function (req, res) {
 
 
 
+
+
 const getUser = async function (req, res) {
     try {
         const userParams = req.params.userId.trim()
@@ -159,65 +161,135 @@ const getUser = async function (req, res) {
     
 
 
-    const updateUser = async function (req, res){
-        try{
-            let userId = req.params.userId
-            let data = req.body
-            let {fname, lname, email, profileImage, phone, password} = data
+const updateUser = async function(req, res){
+    try{
+    let userId =req.params.userId;
+    let data= req.body;
+    let files=req.files
     
-            let address = req.body.address
-            
-            let shippingPincode = address.shipping.pincode
+    let{
+       fname, lname, email, phone, password, address
+    } =data
     
+    if(!mongoose.isValidObjectId(userId)) return res.status(400).send({status :false,message: "userId is invalid"});
+    
+    let verifyUser= await userModel.findOne({_id :userId})
+    if (!verifyUser)  return res.status(404).send({status :false, message:`this userId: ${userId} doesn't exist`});
+    
+    if (userId!=verifyUser._id)return res.status(401).send({status :false,message: "user is not Authorized"});
+    
+    if (!validation.isValidBody(data)) {
+        return res.status(400).send({ status: false, msg: "please provide data in request body" })
+    }
+    
+        if (files && files.length!= 0) {
           
-            let billingPincode = address.billing.pincode
+            let uploadedFileURL = await upload.uploadFile(files[0])
+          verifyUser.profileImage = uploadedFileURL;
     
-            if(validation.isEmpty(data)) return res.status(400).send({status : false, message : "Please update something!" })
     
-            let uniqueEmail = await userModel.findOne({email : email})
-            if(uniqueEmail) return res.status(409).send({status : false, message : "This email already exists!"})
-            if(!validation.validateEmail(email)) return res.status(400).send({status : false, message : "This email is invalid!"})
-    
-            let uniquePhone = await userModel.findOne({phone : phone})
-            if(uniquePhone) return res.status(409).send({status : false, message : "This phone number already exists!"})
-            if(!validation.isValidMobileNum(phone)) return res.status(400).send({status : false, message : "This ain't an Indian mobile number!"})
-    
-            const schema = new passValidator();
-            schema.is().min(8)
-            if (!schema.validate(password)) {
-            return res.status(400).send({ status: false, msg: "Minimum length of password should be 8 characters!" })
-    }
-    
-           schema.is().max(15)
-           if (!schema.validate(password)) {
-           return res.status(400).send({ status: false, msg: "Max length of password should be 15 characters only!" })  
-           
-           let files = req.files
-           if (files && files.length > 0) {
-              
-        let uploadedFileURL = await upload.uploadFile(files[0])
-             
-               data.profileImage = uploadedFileURL
-}
-           else {
-               res.status(400).send({ msg: "No file found" })
-}
-    }
-    
-           if(!validation.isValidPinCode(shippingPincode)) return res.status(400).send({status : false, message : "The pincode provided are invalid!"})
-           if(!validation.isValidPinCode(billingPincode)) return res.status(400).send({status : false, message : "The pincode provided are invalid!"})
-    
-           let update = await userModel.findOneAndUpdate({_id : userId},
-           {$set: {fname:fname, lname:lname, email:email, profileImage:profileImage, phone:phone, password:password, address : address}}, {new : true})
-
-   
-           
-           res.status(200).send({status : true, message : "Data updated successfully!", data : update})
-    
-        }catch(error){
-            res.status(500).send({message : error.message})
+    } 
+    if (fname) {
+        if (!validation.isValid(fname)) {
+            return res.status(400).send({ status: false, message: "first name is not Valid" })
         }
     }
+       verifyUser.fname = fname
+    
+    if (lname) {
+        if (!validation.isValid(lname)) {
+            return res.status(400).send({ status: false, msg: "last name is not Valid" })
+        }
+    }  verifyUser.lname = lname
+    
+    if (email) {
+        if (!validation.isValid(email) && !validation.isValidSyntaxOfEmail(email)) {
+            return res.status(400).send({ status: false, msg: "email is invalid" })
+        }
+        let uniqueEmail = await userModel.findOne({ email: email })
+        if (uniqueEmail) {
+            return res.status(409).send({ status: false, msg: "This email already exists, Please try another one." })
+        }
+    } verifyUser.email = email
+    
+    
+    
+    if (phone) {
+        if (!validation.isValid(phone) && !validation.isValidMobileNum(phone)) {
+            return res.status(400).send({ status: false, msg: "phone is invalid" })
+        }
+        let uniquePhone = await userModel.findOne({ phone: phone })
+        if (uniquePhone) {
+            return res.status(409).send({ status: false, message: "This phone number already exists, please try another one." })
+        } verifyUser.phone = phone
+    }
+    
+        if (password) {
+            if (!validation.isValidPassword) {
+                let saltRounds = await bcrypt.genSalt(10)
+                password = await bcrypt.hash(password, saltRounds)
+                verifyUser.password = password
+            }
+            else {
+                return res.status(400).send({ status: false, message: "Password should be strong please use One digit, one upper case, one lower case, one special character, its b/w 8 to 15" })
+    
+            }
+        }
+    
+            if (address) {
+                if (validation.isValidBody) return res.status(400).send({ status: false, message: "Please enter address and it should be in object!" })       
+                if (address.shipping) {
+                    if (address.shipping.street) {
+                        if (!validation.streetRegex) {
+                            return res.status(400).send({ status: false, message: "Invalid Shipping street" })
+                        } verifyUser.address.shipping.street = address.shipping.street
+                    }
+    
+                    if (address.shipping.city) {
+                        if (!validation.cityRegex) {
+                            return res.status(400).send({ status: false, message: "Invalid Shipping city" })
+                        } verifyUser.address.shipping.city = address.shipping.city
+                    }
+    
+                    if (address.shipping.pincode) {
+                        if (!validation.isValidPinCode) {
+                            return res.status(400).send({ status: false, message: "Invalid Shipping pincode" })
+                        }verifyUser.address.shipping.pincode = address.shipping.pincode
+                    }
+                }
+    
+                if (address.billing) {
+                    if (address.billing.street) {
+                        if (!validation.streetRegex) {
+                            return res.status(400).send({ status: false, message: "Invalid billing street" })
+                        } verifyUser.address.billing.street = address.billing.street
+                    }
+    
+                    if (address.billing.city) {
+                        if (!validation.cityRegex) {
+                            return res.status(400).send({ status: false, message: "Invalid billing city" })
+                        } verifyUser.address.billing.city = address.billing.city
+                    }
+    
+                    if (address.billing.pincode) {
+                        if (!validation.isValidPinCode) {
+                            return res.status(400).send({ status: false, message: "Invalid billing pincode" })
+                        } verifyUser.address.billing.pincode = address.billing.pincode
+                    }
+                }
+            }
+            verifyUser.save()
+            res.status(200).send({ status: true, message: "User profile details", data: verifyUser })
+        }
+    
+        catch(error) {
+            console.log(error)
+            res.status(500).send({ status: false, message: error.message })
+    
+        
+    
+    }
+    }
 
 
-module.exports ={createUser, loginUser, getUser, updateUser}
+module.exports = {createUser, loginUser, getUser, updateUser}
