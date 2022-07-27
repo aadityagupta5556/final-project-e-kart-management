@@ -190,7 +190,18 @@ const getUser = async function (req, res) {
     
            schema.is().max(15)
            if (!schema.validate(password)) {
-           return res.status(400).send({ status: false, msg: "Max length of password should be 15 characters only!" })    
+           return res.status(400).send({ status: false, msg: "Max length of password should be 15 characters only!" })  
+           
+           let files = req.files
+           if (files && files.length > 0) {
+              
+        let uploadedFileURL = await upload.uploadFile(files[0])
+             
+               data.profileImage = uploadedFileURL
+}
+           else {
+               res.status(400).send({ msg: "No file found" })
+}
     }
     
            if(!validation.isValidPinCode(shippingPincode)) return res.status(400).send({status : false, message : "The pincode provided are invalid!"})
