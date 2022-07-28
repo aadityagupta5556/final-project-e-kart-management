@@ -3,6 +3,9 @@ const jwt =require("jsonwebtoken");
 const mongoose=require("mongoose")
 
 
+
+//======================================  Authentication  ===========================================//
+
 const authentication = function(req,res,next)
 {
     try{
@@ -30,6 +33,8 @@ const authentication = function(req,res,next)
 
 
 
+
+//==========================================  Authorization  ===========================================//
 
 const authorization= async function(req,res,next){
     try{

@@ -21,7 +21,7 @@ router.get("/products", productController.getProducts)
 
 router.get("/products/:productId", productController.getProductById)
 
-// router.put("/products/:productId", productController.updateProduct)
+router.put("/products/:productId", productController.updateProduct)
 
 router.delete("/products/:productId", productController.deleteProduct)
 

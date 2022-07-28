@@ -4,11 +4,13 @@ const bcrypt = require('bcrypt');
 const upload = require('../.aws/config')
 const mongoose = require('mongoose');
 const validation = require("../validations/validator.js")
-const passValidator = require("password-validator")
+// const passValidator = require("password-validator")
 const jwt = require("jsonwebtoken")
 
 
 
+
+//====================================  Create User  ======================================//
 
 const createUser = async function (req, res) {
    try{
@@ -19,55 +21,77 @@ const createUser = async function (req, res) {
     if (!validation.isValidBody(data)) {
         return res.status(400).send({ status: false, msg: "Please provide data in request body" })
     }
+
+    if(!fname) return res.status(400).send({status : false, message : "First Name is required!"})
     if (!validation.isValid(fname) && !validation.alphabetTestOfString(fname)) {
         return res.status(400).send({ status: false, msg: "fname is invalid" })
     }
+
+    if(!lname) return res.status(400).send({status : false, message : "Last Name is required!"})
     if (!validation.isValid(lname) && !validation.alphabetTestOfString(lname)) {
         return res.status(400).send({ status: false, msg: "lname is invalid" })
     }
+
+    if(!email) return res.status(400).send({status : false, message : "Email is required!"})
     if (!validation.isValid(email) && !validation.isValidSyntaxOfEmail(email)) {
         return res.status(400).send({ status: false, msg: "Email is invalid" })
     }
     let userEmail = await userModel.find({ email: data.email })
     if (userEmail.length !== 0)
-        return res.status(401).send({ status: false, msg: "This email address is already exists, please enter valid email address" })
+        return res.status(401).send({ status: false, msg: "This email address already exists, please enter valid email address" })
 
+
+    if(!phone) return res.status(400).send({status : false, message : "Phone number is required!"})
     if (!validation.isValid(phone) && !validation.isValidMobileNum(phone)) {
         return res.status(400).send({ status: false, msg: "Phone is invalid" })
     }
-    let userNumber = await userModel.find({ phone: data.phone })
+    let userNumber = await userModel.find({ phone: phone })
     if (userNumber.length !== 0)
-        return res.status(409).send({ status: false, msg: "This phone number is already exist , Please enter another phone number" })
+        return res.status(409).send({ status: false, msg: "This phone number already exists, Please enter another phone number" })
 
+    if(!password) return res.status(400).send({status : false, message : "Password is required!"})
     if (!validation.isValidPassword(password)) {
-        return res.status(400).send({ status: false, msg: "Password should be strong please use One digit, one upper case, one lower case, one special character" })
+        return res.status(400).send({ status: false, msg: "Password should be strong, please use one number, one upper case, one lower case and one special character!" })
     }
 
     const salt = await bcrypt.genSalt(10)
     data.password = await bcrypt.hash(data.password, salt)
 
 
-
+    if(!address.shipping.street) return res.status(400).send({status : false, message : "Shipping Street is required!"})
     if (!validation.isValid(address.shipping.street)) {
-        return res.status(400).send({ status: false, msg: "Please provide street" })
+        return res.status(400).send({ status: false, msg: "Invalid shipping street!" })
     }
+
+    if(!address.shipping.city) return res.status(400).send({status : false, message : "Shipping City is required!"})
     if (!validation.isValid(address.shipping.city)) {
-        return res.status(400).send({ status: false, msg: "Please provide city name" })
+        return res.status(400).send({ status: false, msg: "Invalid shipping city!" })
     }
+
+    if(!address.shipping.pincode) return res.status(400).send({status : false, message : "Shipping Pincode is required!"})
     if (!validation.isValidPinCode(address.shipping.pincode)) {
-        return res.status(400).send({ status: false, msg: "Please provide valid pincode" })
+        return res.status(400).send({ status: false, msg: "Invalid shipping pincode!" })
     }
+
+    if(!address.billing.street) return res.status(400).send({status : false, message : "Billing Street is required!"})
     if (!validation.isValid(address.billing.street)) {
-        return res.status(400).send({ status: false, msg: "Please provide street" })
+        return res.status(400).send({ status: false, msg: "Invalid billing street!" })
     }
+
+    if(!address.billing.city) return res.status(400).send({status : false, message : "Billing City is required!"})
     if (!validation.isValid(address.billing.city)) {
-        return res.status(400).send({ status: false, msg: "Please provide city name" })
+        return res.status(400).send({ status: false, msg: "Invalid billing city!" })
     }
+
+    if(!address.billing.pincode) return res.status(400).send({status : false, message : "Billing Pincode is required!"})
     if (!validation.isValidPinCode(address.billing.pincode)) {
-        return res.status(400).send({ status: false, msg: "Please provide valid pincode" })
+        return res.status(400).send({ status: false, msg: "Invalid billing pincode!" })
     }
+
+
 
     let files = req.files
+    if(!files) return res.status(400).send({status : false, message : "Product Image is required!"})
     if (files && files.length > 0) {
       
         let uploadedFileURL = await upload.uploadFile(files[0])
@@ -79,6 +103,7 @@ const createUser = async function (req, res) {
     }
     const document = await userModel.create(data)
     res.status(201).send({ status: true, data: document })
+
 }catch(error){
     res.status(500).send({message : error.message})
 }
@@ -88,6 +113,8 @@ const createUser = async function (req, res) {
 
 
 
+
+//========================================  Login User  ==========================================//
 
 const loginUser = async function (req, res) {
     try {
@@ -127,6 +154,9 @@ const loginUser = async function (req, res) {
 
 
 
+
+//===========================================  Get User By UserId  =========================================//
+
 const getUser = async function (req, res) {
     try {
         const userParams = req.params.userId.trim()
@@ -159,7 +189,7 @@ const getUser = async function (req, res) {
 
 
     
-
+//==========================================  Update User  =========================================//
 
 const updateUser = async function(req, res){
     try{

@@ -80,5 +80,10 @@ const streetRegex = function (value){
     return user
 }
 
+const validString = function(value) {
+    if (typeof value === 'string' && value.trim().length === 0) return false
+    return true;
+}
 
-module.exports = {isValid, isValidBody, alphabetTestOfString, isValidSyntaxOfEmail, isValidMobileNum, isValidPinCode, isValidPassword, validateEmail, userIdMatch, onlyNumbers, isValidPrice, cityRegex, streetRegex}
+
+module.exports = {isValid, isValidBody, alphabetTestOfString, isValidSyntaxOfEmail, isValidMobileNum, isValidPinCode, isValidPassword, validateEmail, userIdMatch, onlyNumbers, isValidPrice, cityRegex, streetRegex, validString}
