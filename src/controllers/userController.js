@@ -10,7 +10,7 @@ const jwt = require("jsonwebtoken")
 
 
 
-//====================================  Create User  ======================================//
+//====================================  Creating Users  ======================================//
 
 const createUser = async function (req, res) {
    try{
@@ -114,7 +114,7 @@ const createUser = async function (req, res) {
 
 
 
-//========================================  Login User  ==========================================//
+//========================================  Logging In The User  ==========================================//
 
 const loginUser = async function (req, res) {
     try {
@@ -155,7 +155,7 @@ const loginUser = async function (req, res) {
 
 
 
-//===========================================  Get User By UserId  =========================================//
+//===========================================  Getting User By UserId  =========================================//
 
 const getUser = async function (req, res) {
     try {
@@ -189,7 +189,7 @@ const getUser = async function (req, res) {
 
 
     
-//==========================================  Update User  =========================================//
+//==========================================  Updating User  =========================================//
 
 const updateUser = async function(req, res){
     try{

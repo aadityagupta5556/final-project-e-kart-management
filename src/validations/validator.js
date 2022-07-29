@@ -40,6 +40,7 @@ const isValidPinCode = (value) => {
     const result = regEx.test(value)
     return result
 }
+
 const isValidPassword = function (value) {
     const passwordregex = /^(?=.*[0-9])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{6,16}$/;
     if (passwordregex.test(value)) {
