@@ -55,7 +55,7 @@ const validateEmail = function (mail) {
     }
 }
 
-const userIdMatch = function (value){
+const objectIdMatch = function (value){
     let user = /^[0-9a-fA-F]{24}$/.test(value)
     return user
 }
@@ -87,4 +87,4 @@ const validString = function(value) {
 }
 
 
-module.exports = {isValid, isValidBody, alphabetTestOfString, isValidSyntaxOfEmail, isValidMobileNum, isValidPinCode, isValidPassword, validateEmail, userIdMatch, onlyNumbers, isValidPrice, cityRegex, streetRegex, validString}
+module.exports = {isValid, isValidBody, alphabetTestOfString, isValidSyntaxOfEmail, isValidMobileNum, isValidPinCode, isValidPassword, validateEmail, objectIdMatch, onlyNumbers, isValidPrice, cityRegex, streetRegex, validString}

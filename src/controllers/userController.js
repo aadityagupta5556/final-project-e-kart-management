@@ -4,7 +4,6 @@ const bcrypt = require('bcrypt');
 const upload = require('../.aws/config')
 const mongoose = require('mongoose');
 const validation = require("../validations/validator.js")
-// const passValidator = require("password-validator")
 const jwt = require("jsonwebtoken")
 
 
@@ -19,7 +18,7 @@ const createUser = async function (req, res) {
     const { fname, lname, email, phone, password, address } = data;
 
     if (!validation.isValidBody(data)) {
-        return res.status(400).send({ status: false, msg: "Please provide data in request body" })
+        return res.status(400).send({ status: false, msg: "Please provide data in the request body!" })
     }
 
     if(!fname) return res.status(400).send({status : false, message : "First Name is required!"})
@@ -34,20 +33,20 @@ const createUser = async function (req, res) {
 
     if(!email) return res.status(400).send({status : false, message : "Email is required!"})
     if (!validation.isValid(email) && !validation.isValidSyntaxOfEmail(email)) {
-        return res.status(400).send({ status: false, msg: "Email is invalid" })
+        return res.status(400).send({ status: false, msg: "Email is invalid!" })
     }
-    let userEmail = await userModel.find({ email: data.email })
-    if (userEmail.length !== 0)
-        return res.status(401).send({ status: false, msg: "This email address already exists, please enter valid email address" })
+    let userEmail = await userModel.findOne({ email : email })
+    if (userEmail)
+        return res.status(401).send({ status: false, msg: "This email address already exists, please enter a unique email address!" })
 
 
     if(!phone) return res.status(400).send({status : false, message : "Phone number is required!"})
     if (!validation.isValid(phone) && !validation.isValidMobileNum(phone)) {
         return res.status(400).send({ status: false, msg: "Phone is invalid" })
     }
-    let userNumber = await userModel.find({ phone: phone })
-    if (userNumber.length !== 0)
-        return res.status(409).send({ status: false, msg: "This phone number already exists, Please enter another phone number" })
+    let userNumber = await userModel.findOne({ phone: phone })
+    if (userNumber)
+        return res.status(409).send({ status: false, msg: "This phone number already exists, please enter a unique phone number!" })
 
     if(!password) return res.status(400).send({status : false, message : "Password is required!"})
     if (!validation.isValidPassword(password)) {
@@ -126,24 +125,38 @@ const loginUser = async function (req, res) {
             return res.status(400).send({ status: false, Msg: "Body cannot be empty" })
         }
 
+
+        if(!email){
+            return res.status(400).send({status : false, message : "Email is required!"})
+        }
+        if(!validation.isValidSyntaxOfEmail(email)){
+            return res.status(400).send({status : false, message : "Invalid email format!"})
+        }
+        let userE = await userModel.findOne({ email: email});
+        if (!userE) {
+            return res.status(401).send({ status: false, message: "Email Is incorrect!" });
+        }
+
+
+
         if (!password) {
-            return res.status(400).send({ status: false, message: "Password is required" })
+            return res.status(400).send({ status: false, message: "Password is required!" })
         }
-        let user = await userModel.findOne({ email: email});
-        if (!user) {
-            return res.status(401).send({ status: false, message: "Email Is incorrect" });
+        if(!validation.isValidPassword(password)){
+            return res.status(400).send({status : false, message : "Invalid password format!"})
         }
+        
 
         let iat = Math.floor(Date.now() / 1000)
         let exp = iat + (60 * 60)
         let token = jwt.sign(
-            { _id: user._id.toString(), 
+            { _id: userE._id.toString(), 
             iat: iat, 
             exp: exp 
         }, "Group-58");
         res.setHeader("x-api-key", token);
 
-        res.status(201).send({status: true, message: "User login successfull",data: {userId:user._id,token: token}});
+        res.status(200).send({status: true, message: "User login successfull", data: {userId : userE._id,token: token}});
 
     } catch (err) {
         res.status(500).send({ staus: false, msg: err.message })
@@ -160,16 +173,15 @@ const loginUser = async function (req, res) {
 const getUser = async function (req, res) {
     try {
         const userParams = req.params.userId.trim()
-        //validating userId
-        if (!validation.userIdMatch(userParams)) {
+        if (!validation.objectIdMatch(userParams)) {
             return res.status(400).send({ status: false, message: "Invalid userId, please enter a correct objectId" })
         }
-        //finding user in db
+       
         const findUser = await userModel.findOne({ _id: userParams })
         if (!findUser) {
-            return res.status(404).send({ status: false, message: `User does not exist.` })
+            return res.status(404).send({ status: false, message: `User does not exists!` })
         }
-        // Authorization
+        
         if (findUser) { 
             return res.status(200).send({ status: true, msg: "User profile details", data: findUser })
 
@@ -201,7 +213,7 @@ const updateUser = async function(req, res){
        fname, lname, email, phone, password, address
     } =data
     
-    if(!mongoose.isValidObjectId(userId)) return res.status(400).send({status :false,message: "userId is invalid"});
+    if(!validation.objectIdMatch(userId)) return res.status(400).send({status :false,message: "userId is invalid"});
     
     let verifyUser= await userModel.findOne({_id :userId})
     if (!verifyUser)  return res.status(404).send({status :false, message:`this userId: ${userId} doesn't exist`});
