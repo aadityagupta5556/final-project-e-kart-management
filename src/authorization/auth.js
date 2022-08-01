@@ -47,7 +47,7 @@ const authorization= async function(req,res,next){
 
     let user=await userModel.findOne({_id:userId})
     if(!user)return res.status(400).send({status :false,message: "user doesnot exist with this id"});
-    if(decodedtoken.userId!=user._id)return res.status(403).send({status :false,message: "unauthorized acess"});
+    if(decodedtoken.userId!=user._id)return res.status(401).send({status :false,message: "Unauthorized acess"});
 
     next()
     }
