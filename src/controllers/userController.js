@@ -173,7 +173,7 @@ const loginUser = async function (req, res) {
 const getUser = async function (req, res) {
     try {
         const userParams = req.params.userId.trim()
-        if (!validation.objectIdMatch(userParams)) {
+        if (!validation.idMatch(userParams)) {
             return res.status(400).send({ status: false, message: "Invalid userId, please enter a correct objectId" })
         }
        
@@ -213,7 +213,7 @@ const updateUser = async function(req, res){
        fname, lname, email, phone, password, address
     } =data
     
-    if(!validation.objectIdMatch(userId)) return res.status(400).send({status :false,message: "userId is invalid"});
+    if(!validation.idMatch(userId)) return res.status(400).send({status :false,message: "userId is invalid"});
     
     let verifyUser= await userModel.findOne({_id :userId})
     if (!verifyUser)  return res.status(404).send({status :false, message:`this userId: ${userId} doesn't exist`});

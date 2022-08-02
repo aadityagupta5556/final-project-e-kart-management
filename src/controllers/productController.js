@@ -158,7 +158,7 @@ const getProducts = async function (req, res) {
 const getProductById = async function (req,res){
     try{
         let productId = req.params.productId
-      if (!validation.objectIdMatch(productId)) return res.status(400).send({ status: false, message: "ProductId is not valid" });
+      if (!validation.idMatch(productId)) return res.status(400).send({ status: false, message: "ProductId is not valid" });
 
       let getAll = await productModel.findOne({_id : productId, isDeleted : false}).sort("price")
       if(!getAll) return res.status(404).send({status : false, msg : "No product found with this ProductId!"})
@@ -188,7 +188,7 @@ const updateProduct = async function (req, res) {
 
         let { title, description, price, isFreeShipping, productImage,style, availableSizes, installments } = updateBody
 
-        if (!validation.objectIdMatch) {
+        if (!validation.idMatch) {
             return res.status(400).send({status: false, message: 'Please provide valid product id in Params' })
         }
 
@@ -310,7 +310,7 @@ const updateProduct = async function (req, res) {
 const deleteProduct= async function(req,res){
     try{
         let productId = req.params.productId
-        if (!validation.objectIdMatch(productId)) return res.status(400).send({ status: false, message: "ProductId is not valid!" });
+        if (!validation.idMatch(productId)) return res.status(400).send({ status: false, message: "ProductId is not valid!" });
         
         const product = await productModel.findOne({_id: productId})
 

@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const userController = require('../controllers/userController.js')
 const productController = require("../controllers/productController")
+const cartController = require("../controllers/cartController")
 const MW = require("../authorization/auth.js")
 
 
@@ -31,7 +32,7 @@ router.delete("/products/:productId", productController.deleteProduct)
 //============================Cart Handlers==================================//
 router.post("/users/:userId/cart", cartController.createCart)
 
-router.put("/users/:userId/cart", cartController.updateCart)
+// router.put("/users/:userId/cart", cartController.updateCart)
 
 router.get("/users/:userId/cart", cartController.getCart)
 
