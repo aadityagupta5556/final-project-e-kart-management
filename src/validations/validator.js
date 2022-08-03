@@ -87,4 +87,5 @@ const validString = function(value) {
 }
 
 
+
 module.exports = {isValid, isValidBody, alphabetTestOfString, isValidSyntaxOfEmail, isValidMobileNum, isValidPinCode, isValidPassword, validateEmail, idMatch, onlyNumbers, isValidPrice, cityRegex, streetRegex, validString}

@@ -32,7 +32,7 @@ router.delete("/products/:productId", productController.deleteProduct)
 //============================Cart Handlers==================================//
 router.post("/users/:userId/cart", cartController.createCart)
 
-// router.put("/users/:userId/cart", cartController.updateCart)
+router.put("/users/:userId/cart", cartController.updateCart)
 
 router.get("/users/:userId/cart", cartController.getCart)
 

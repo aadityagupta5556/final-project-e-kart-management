@@ -1,6 +1,7 @@
 const userModel = require('../models/userModel.js')
 const jwt =require("jsonwebtoken");
 const mongoose=require("mongoose")
+const validation = require("../validations/validator.js")
 
 
 
@@ -43,7 +44,7 @@ const authorization= async function(req,res,next){
     let decodedtoken= jwt.verify(splittoken[1],"group58")
     let userId=req.params.userId
     
-    if(!mongoose.isValidObjectId(userId)) return res.status(400).send({status :false,message: "userId is invalid"});
+    if(!validation.idMatch(userId)) return res.status(400).send({status :false,message: "userId is invalid"});
 
     let user=await userModel.findOne({_id:userId})
     if(!user)return res.status(400).send({status :false,message: "user doesnot exist with this id"});
