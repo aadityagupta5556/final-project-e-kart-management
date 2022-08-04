@@ -43,7 +43,7 @@ router.delete("/users/:userId/cart", cartController.deleteCart)
 //==========================  Order Handlers  ================================//
 router.post("/users/:userId/orders", orderController.createOrder)
 
-// router.put("/users/:userId/orders", orderController.updateOrder)
+router.put("/users/:userId/orders", orderController.updateOrder)
 
 
 
