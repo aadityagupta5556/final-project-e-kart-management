@@ -61,7 +61,7 @@ const updateOrder= async function (req, res){
          let userId= req.params.userId
          let body= req.body
          
-         // validating request body .
+         
         if(!validation.isValidBody(body)){
             return res.status(400).send({status : false, message : "Please provide inputs in body!"})
         }
@@ -74,13 +74,10 @@ const updateOrder= async function (req, res){
             return res.status(400).send({ status:false , message: "The userId you have provided doesn't exist!"})
           }
 
-         // extracting params
           const{orderId, status} =  body
 
           if(!orderId) return res.status(400).send({status: false , message: `Order doesn't exist for ${orderId} `});
 
-          
-          // verifying does the order belongs to user or not 
           let isOrder = await orderModel.findOne({ _id : orderId});
           if(!isOrder) return res.status(400).send({ status:false , message: `Order doesn't belongs to ${orderId}`});
 
