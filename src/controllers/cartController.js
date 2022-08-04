@@ -29,7 +29,7 @@ const createCart = async function (req, res){
 
        if(cartId){
         if(!validation.idMatch(cartId)) return res.status(400).send({status : false, message : "Invalid cartId!"})
-        if(cart._id != cartId) return res.status(400).send({status : false, message : "The cartId in the request body doesn't match with cartId made by the user!"})
+        if(cart._id != cartId) return res.status(403).send({status : false, message : "The cartId in the request body doesn't match with cartId made by the user!"})
       }
 
       let data = {userId : userId, items : [], totalPrice : 0, totalItems : 0}
@@ -116,7 +116,6 @@ const updateCart = async function (req, res) {
           return res.status(400).send({ status: false, message: "cartId does not exists" })
       }
 
-      //product validation
       if(!productId) return res.status(400).send({status : false, message : "ProductId cannot be empty!"})
       if (!validation.idMatch(productId)) {
           return res.status(400).send({ status: false, message: "Invalid productId in body" })
@@ -126,13 +125,11 @@ const updateCart = async function (req, res) {
           return res.status(400).send({ status: false, message: "productId does not exist!" })
       }
 
-      //finding if products exits in cart
       let isProductinCart = await cartModel.findOne({ items: { $elemMatch: { productId: productId } } })
       if (!isProductinCart) {
           return res.status(400).send({ status: false, message: `${findProduct.title} does not exist in the cart` })
       }
 
-      //removeProduct => 0 for product remove completely, 1 for decreasing its quantity.
       if(!removeProduct) return res.status(400).send({status : false, message : "removeProduct cannot be empty!"})
       if (!((removeProduct === 0) || (removeProduct === 1))) {
           return res.status(400).send({ status: false, message: 'removeProduct should be 0 (product is to be removed) or 1(quantity has to be decremented by 1) ' })
@@ -165,7 +162,7 @@ const updateCart = async function (req, res) {
                   let quantity = findCart.totalItems - 1
 
                   let data = await cartModel.findOneAndUpdate({ _id: cartId }, { $set: { totalPrice: totalAmount, totalItems: quantity } },
-                      { new: true }) //update the cart with total items and totalprice
+                      { new: true }) 
 
                   return res.status(200).send({ status: true, message: `No such quantity/product exist in cart`, data: data })
               }
