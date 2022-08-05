@@ -15,13 +15,13 @@ const authentication = function(req,res,next)
 
     if(!token)return res.status(401).send({status:false, message:"Please enter token in bearer token"});
     let splittoken=token.split(" ")
-
-        jwt.verify(splittoken[1],"group58",(error)=>{
+    
+        jwt.verify(splittoken[1],"Group-58",(error)=>{
             if(error){
-            const message =error.message==="jwt expired" ?"token is expired plz login again" :"plz rechecked your token "
+            const message = error.message == "jwt expired" ? "Token is expired, please login again!" : "Please recheck your token!"
             return res.status(401).send({status:false, message});
             }
-       
+    
             next();
          });
     }
@@ -40,15 +40,17 @@ const authentication = function(req,res,next)
 const authorization= async function(req,res,next){
     try{
     let token = req.header("Authorization","Bearer Token");
-    let splittoken=token.split(" ")
-    let decodedtoken= jwt.verify(splittoken[1],"group58")
-    let userId=req.params.userId
+    let splittoken = token.split(" ")
+    let newToken = jwt.verify(splittoken[1],"Group-58")
+    let userId = req.params.userId
     
     if(!validation.idMatch(userId)) return res.status(400).send({status :false,message: "userId is invalid"});
 
-    let user=await userModel.findOne({_id:userId})
-    if(!user)return res.status(400).send({status :false,message: "user doesnot exist with this id"});
-    if(decodedtoken.userId!=user._id)return res.status(401).send({status :false,message: "Unauthorized acess"});
+    let decodedToken = newToken._id.toString()
+    let realToken = userId.toString()
+
+    if(decodedToken !== realToken)return res.status(401).send({status :false,message: "Unauthorized access!"});
+     
 
     next()
     }

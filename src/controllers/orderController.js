@@ -29,7 +29,15 @@ const createOrder = async function (req, res) {
         if (!cart) return res.status(404).send({ status: false, message: "No such cart was found!" })
         if (cart.userId != userId) return res.status(403).send({ status: false, message: "You're forbidden to edit/create this cart!" })
 
-        let obj = { userId: userId, items: cart.items, totalPrice: cart.totalPrice, totalItems: cart.totalItems, totalQuantity: 0, status: "pending", cancellable: true }
+        let obj = {
+            userId: userId, 
+            items: cart.items,
+            totalPrice: cart.totalPrice, 
+            totalItems: cart.totalItems, 
+            totalQuantity: 0,
+            status: "pending", 
+            cancellable: true 
+        }
 
         let count = 0
         let items = cart.items
@@ -54,14 +62,14 @@ const createOrder = async function (req, res) {
 
 
 
-
+//=========================================  Updating Order  =====================================//
 
 const updateOrder= async function (req, res){
     try {
          let userId= req.params.userId
          let body= req.body
          
-         
+
         if(!validation.isValidBody(body)){
             return res.status(400).send({status : false, message : "Please provide inputs in body!"})
         }
@@ -79,7 +87,7 @@ const updateOrder= async function (req, res){
           if(!orderId) return res.status(400).send({status: false , message: `Order doesn't exist for ${orderId} `});
 
           let isOrder = await orderModel.findOne({ _id : orderId});
-          if(!isOrder) return res.status(400).send({ status:false , message: `Order doesn't belongs to ${orderId}`});
+          if(!isOrder) return res.status(404).send({ status:false , message: "The order you requested doesn't exist!"});
 
             if(isOrder.userId != userId) return res.status(403).send({status : false, message : "This cart doesn't belong to you!"})
 
@@ -88,11 +96,11 @@ const updateOrder= async function (req, res){
            return res.status(400).send({ status: false , message :"Status not provided. Please enter current status of the order."})
          }
 
-         if(isOrder.cancellable == true){
+         if(isOrder.cancellable === true){
             if(!["pending", "completed", "cancelled"].includes(status)) return res.status(400).send({status : false, msg : "Should include 'pending', 'completed' or 'cancelled' only!"})
             
          }else{
-            if(status == "cancelled") return res.status(403).send({status : false, message : "This product cannot be cancelled"})
+            if(status === "cancelled") return res.status(403).send({status : false, message : "This product cannot be cancelled"})
             if(!["pending", "completed"].includes(status)) return res.status(400).send({status : false, msg : "Should include 'pending' or 'completed' only!"})
          }
 

@@ -29,14 +29,12 @@ const isValidSyntaxOfEmail = function (value) {
 };
 
 const isValidMobileNum = function (value) {
-    if (/^[6-9]\d{9}$/.test(value)) {
-        return true;
-    }
-    return false;
+    let user = /^(?:(?:\+|0{0,2})91(\s*[\-]\s*)?|[0]?)?[6789]\d{9}$/.test(value)
+    return user
 };
 
 const isValidPinCode = (value) => {
-    const regEx = /^\s*([1-9]){6}\s*$/
+    const regEx =  /^[1-9]{1}[0-9]{2}\s{0,1}[0-9]{3}$/
     const result = regEx.test(value)
     return result
 }

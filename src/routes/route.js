@@ -13,9 +13,9 @@ router.post('/register', userController.createUser);
 
 router.post("/login", userController.loginUser)
 
-router.get("/user/:userId/profile",  userController.getUser)
+router.get("/user/:userId/profile", MW.authentication, userController.getUser)
 
-router.put("/user/:userId/profile", userController.updateUser)
+router.put("/user/:userId/profile", MW.authentication, MW.authorization, userController.updateUser)
 
 
 //=============================  Product Handlers  ===============================//
@@ -31,19 +31,19 @@ router.delete("/products/:productId", productController.deleteProduct)
 
 
 //============================  Cart Handlers  ==================================//
-router.post("/users/:userId/cart", cartController.createCart)
+router.post("/users/:userId/cart", MW.authentication, MW.authorization, cartController.createCart)
 
-router.put("/users/:userId/cart", cartController.updateCart)
+router.put("/users/:userId/cart", MW.authentication, MW.authorization, cartController.updateCart)
 
-router.get("/users/:userId/cart", cartController.getCart)
+router.get("/users/:userId/cart", MW.authentication, MW.authorization,cartController.getCart)
 
-router.delete("/users/:userId/cart", cartController.deleteCart)
+router.delete("/users/:userId/cart", MW.authentication, MW.authorization, cartController.deleteCart)
 
 
 //==========================  Order Handlers  ================================//
-router.post("/users/:userId/orders", orderController.createOrder)
+router.post("/users/:userId/orders", MW.authentication, MW.authorization, orderController.createOrder)
 
-router.put("/users/:userId/orders", orderController.updateOrder)
+router.put("/users/:userId/orders", MW.authentication, MW.authorization, orderController.updateOrder)
 
 
 

@@ -41,7 +41,7 @@ const createUser = async function (req, res) {
 
 
     if(!phone) return res.status(400).send({status : false, message : "Phone number is required!"})
-    if (!validation.isValid(phone) && !validation.isValidMobileNum(phone)) {
+    if (!validation.isValidMobileNum(phone)) {
         return res.status(400).send({ status: false, msg: "Phone is invalid" })
     }
     let userNumber = await userModel.findOne({ phone: phone })
@@ -90,7 +90,6 @@ const createUser = async function (req, res) {
 
 
     let files = req.files
-    if(!files) return res.status(400).send({status : false, message : "Product Image is required!"})
     if (files && files.length > 0) {
       
         let uploadedFileURL = await upload.uploadFile(files[0])
@@ -98,7 +97,7 @@ const createUser = async function (req, res) {
         data.profileImage = uploadedFileURL;
     }
     else {
-        res.status(400).send({ msg: "No file found" })
+        res.status(400).send({ msg: "Files are required!" })
     }
     const document = await userModel.create(data)
     res.status(201).send({ status: true, data: document })
