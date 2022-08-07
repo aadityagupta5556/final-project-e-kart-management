@@ -1,7 +1,7 @@
 const userModel = require('../models/userModel.js')
 const jwt =require("jsonwebtoken");
 const mongoose=require("mongoose")
-const validation = require("../validations/validator.js")
+
 
 
 
@@ -43,8 +43,6 @@ const authorization= async function(req,res,next){
     let splittoken = token.split(" ")
     let newToken = jwt.verify(splittoken[1],"Group-58")
     let userId = req.params.userId
-    
-    if(!validation.idMatch(userId)) return res.status(400).send({status :false,message: "userId is invalid"});
 
     let decodedToken = newToken._id.toString()
     let realToken = userId.toString()

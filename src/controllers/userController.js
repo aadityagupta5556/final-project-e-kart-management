@@ -32,7 +32,7 @@ const createUser = async function (req, res) {
     }
 
     if(!email) return res.status(400).send({status : false, message : "Email is required!"})
-    if (!validation.isValid(email) && !validation.isValidSyntaxOfEmail(email)) {
+    if (!validation.isValidSyntaxOfEmail(email)) {
         return res.status(400).send({ status: false, msg: "Email is invalid!" })
     }
     let userEmail = await userModel.findOne({ email : email })
@@ -50,7 +50,7 @@ const createUser = async function (req, res) {
 
     if(!password) return res.status(400).send({status : false, message : "Password is required!"})
     if (!validation.isValidPassword(password)) {
-        return res.status(400).send({ status: false, msg: "Password should be strong, please use one number, one upper case, one lower case and one special character!" })
+        return res.status(400).send({ status: false, msg: "Password should be strong, please use one number, one upper case, one lower case and one special character and characters should be between 8 to 15 only!" })
     }
 
     const salt = await bcrypt.genSalt(10)
@@ -205,58 +205,59 @@ const getUser = async function (req, res) {
 const updateUser = async function(req, res){
     try{
     let userId =req.params.userId;
-    let data= req.body;
-    let files=req.files
+    let data = req.body;
+    let files = req.files
     
     let{
        fname, lname, email, phone, password, address
-    } =data
+    } = data
     
-    if(!validation.idMatch(userId)) return res.status(400).send({status :false,message: "userId is invalid"});
+    if(!validation.idMatch(userId)) return res.status(400).send({status :false,message: "UserId is invalid"});
     
     let verifyUser= await userModel.findOne({_id :userId})
-    if (!verifyUser)  return res.status(404).send({status :false, message:`this userId: ${userId} doesn't exist`});
+    if (!verifyUser)  return res.status(404).send({status :false, message:`This userId: ${userId} doesn't exist`});
     
-    if (userId!=verifyUser._id)return res.status(401).send({status :false,message: "user is not Authorized"});
+    if (userId!=verifyUser._id)return res.status(401).send({status :false,message: "User is not Authorized"});
     
     if (!validation.isValidBody(data)) {
-        return res.status(400).send({ status: false, msg: "please provide data in request body" })
+        return res.status(400).send({ status: false, msg: "Please provide data in request body" })
     }
-    
+
+       if(files){
         if (files && files.length!= 0) {
           
             let uploadedFileURL = await upload.uploadFile(files[0])
           verifyUser.profileImage = uploadedFileURL;
-    
-    
     } 
+}
+
     if (fname) {
         if (!validation.isValid(fname)) {
-            return res.status(400).send({ status: false, message: "first name is not Valid" })
+            return res.status(400).send({ status: false, message: "First name is not Valid" })
         }
     }
        verifyUser.fname = fname
     
     if (lname) {
         if (!validation.isValid(lname)) {
-            return res.status(400).send({ status: false, msg: "last name is not Valid" })
+            return res.status(400).send({ status: false, msg: "Last name is not Valid" })
         }
     }  verifyUser.lname = lname
     
     if (email) {
-        if (!validation.isValid(email) && !validation.isValidSyntaxOfEmail(email)) {
-            return res.status(400).send({ status: false, msg: "email is invalid" })
+        if (!validation.isValidSyntaxOfEmail(email)) {
+            return res.status(400).send({ status: false, msg: "Email is invalid" })
         }
         let uniqueEmail = await userModel.findOne({ email: email })
         if (uniqueEmail) {
-            return res.status(409).send({ status: false, msg: "This email already exists, Please try another one." })
+            return res.status(409).send({ status: false, msg: "This email already exists, please try another one." })
         }
     } verifyUser.email = email
     
     
     
     if (phone) {
-        if (!validation.isValid(phone) && !validation.isValidMobileNum(phone)) {
+        if (!validation.isValidMobileNum(phone)) {
             return res.status(400).send({ status: false, msg: "phone is invalid" })
         }
         let uniquePhone = await userModel.findOne({ phone: phone })
@@ -266,19 +267,19 @@ const updateUser = async function(req, res){
     }
     
         if (password) {
-            if (!validation.isValidPassword) {
+            if (!validation.isValidPassword(password)) {
                 let saltRounds = await bcrypt.genSalt(10)
                 password = await bcrypt.hash(password, saltRounds)
                 verifyUser.password = password
             }
             else {
-                return res.status(400).send({ status: false, message: "Password should be strong please use One digit, one upper case, one lower case, one special character, its b/w 8 to 15" })
+                return res.status(400).send({ status: false, message: "Password should be strong. Please use one digit, one upper case, one lower case, one special character, an in between 8 to 15 characters only!" })
     
             }
         }
     
             if (address) {
-                if (validation.isValidBody) return res.status(400).send({ status: false, message: "Please enter address and it should be in object!" })       
+                if (validation.isValidBody(address)) return res.status(400).send({ status: false, message: "Please enter address and it should be in object!" })       
                 if (address.shipping) {
                     if (address.shipping.street) {
                         if (!validation.streetRegex) {
@@ -287,13 +288,13 @@ const updateUser = async function(req, res){
                     }
     
                     if (address.shipping.city) {
-                        if (!validation.cityRegex) {
+                        if (!validation.cityRegex(address.shipping.city)) {
                             return res.status(400).send({ status: false, message: "Invalid Shipping city" })
                         } verifyUser.address.shipping.city = address.shipping.city
                     }
     
                     if (address.shipping.pincode) {
-                        if (!validation.isValidPinCode) {
+                        if (!validation.isValidPinCode(address.shipping.pincode)) {
                             return res.status(400).send({ status: false, message: "Invalid Shipping pincode" })
                         }verifyUser.address.shipping.pincode = address.shipping.pincode
                     }
@@ -301,19 +302,19 @@ const updateUser = async function(req, res){
     
                 if (address.billing) {
                     if (address.billing.street) {
-                        if (!validation.streetRegex) {
+                        if (!validation.streetRegex(address.billing.street)) {
                             return res.status(400).send({ status: false, message: "Invalid billing street" })
                         } verifyUser.address.billing.street = address.billing.street
                     }
     
                     if (address.billing.city) {
-                        if (!validation.cityRegex) {
+                        if (!validation.cityRegex(address.billing.city)) {
                             return res.status(400).send({ status: false, message: "Invalid billing city" })
                         } verifyUser.address.billing.city = address.billing.city
                     }
     
                     if (address.billing.pincode) {
-                        if (!validation.isValidPinCode) {
+                        if (!validation.isValidPinCode(address.billing.pincode)) {
                             return res.status(400).send({ status: false, message: "Invalid billing pincode" })
                         } verifyUser.address.billing.pincode = address.billing.pincode
                     }
