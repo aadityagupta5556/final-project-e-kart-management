@@ -1,8 +1,6 @@
 const userModel = require('../models/userModel')
-const aws = require("aws-sdk")
 const bcrypt = require('bcrypt');
 const upload = require('../.aws/config')
-const mongoose = require('mongoose');
 const validation = require("../validations/validator.js")
 const jwt = require("jsonwebtoken");
 const { findOneAndUpdate } = require('../models/cartModel');
@@ -228,7 +226,7 @@ const updateUser = async function(req, res){
         if (files && files.length!= 0) {
           
             let uploadedFileURL = await upload.uploadFile(files[0])
-         
+          data.profileImage = uploadedFileURL
     } 
 }
 
@@ -291,7 +289,7 @@ const updateUser = async function(req, res){
                     if (address.shipping.city) {
                         if (!validation.cityRegex(address.shipping.city)) {
                             return res.status(400).send({ status: false, message: "Invalid Shipping city" })
-                        }// verifyUser.address.shipping.city = address.shipping.city
+                        }
                     }
     
                     if (address.shipping.pincode) {
@@ -327,7 +325,6 @@ const updateUser = async function(req, res){
         }
     
         catch(error) {
-            console.log(error)
             res.status(500).send({ status: false, message: error.message })
     }
     }

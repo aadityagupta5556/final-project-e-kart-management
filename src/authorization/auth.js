@@ -1,6 +1,5 @@
 const userModel = require('../models/userModel.js')
 const jwt =require("jsonwebtoken");
-const mongoose=require("mongoose")
 
 
 
