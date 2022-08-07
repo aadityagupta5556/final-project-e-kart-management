@@ -4,7 +4,8 @@ const bcrypt = require('bcrypt');
 const upload = require('../.aws/config')
 const mongoose = require('mongoose');
 const validation = require("../validations/validator.js")
-const jwt = require("jsonwebtoken")
+const jwt = require("jsonwebtoken");
+const { findOneAndUpdate } = require('../models/cartModel');
 
 
 
@@ -227,7 +228,7 @@ const updateUser = async function(req, res){
         if (files && files.length!= 0) {
           
             let uploadedFileURL = await upload.uploadFile(files[0])
-          verifyUser.profileImage = uploadedFileURL;
+         
     } 
 }
 
@@ -236,13 +237,13 @@ const updateUser = async function(req, res){
             return res.status(400).send({ status: false, message: "First name is not Valid" })
         }
     }
-       verifyUser.fname = fname
+       
     
     if (lname) {
         if (!validation.isValid(lname)) {
             return res.status(400).send({ status: false, msg: "Last name is not Valid" })
         }
-    }  verifyUser.lname = lname
+    } 
     
     if (email) {
         if (!validation.isValidSyntaxOfEmail(email)) {
@@ -252,7 +253,7 @@ const updateUser = async function(req, res){
         if (uniqueEmail) {
             return res.status(409).send({ status: false, msg: "This email already exists, please try another one." })
         }
-    } verifyUser.email = email
+    } 
     
     
     
@@ -263,40 +264,40 @@ const updateUser = async function(req, res){
         let uniquePhone = await userModel.findOne({ phone: phone })
         if (uniquePhone) {
             return res.status(409).send({ status: false, message: "This phone number already exists, please try another one." })
-        } verifyUser.phone = phone
+        } 
     }
     
         if (password) {
             if (!validation.isValidPassword(password)) {
-                let saltRounds = await bcrypt.genSalt(10)
-                password = await bcrypt.hash(password, saltRounds)
-                verifyUser.password = password
+                return res.status(400).send({ status: false, message: "Password should be strong. Please use one digit, one upper case, one lower case, one special character, an in between 8 to 15 characters only!" })
+                
             }
             else {
-                return res.status(400).send({ status: false, message: "Password should be strong. Please use one digit, one upper case, one lower case, one special character, an in between 8 to 15 characters only!" })
-    
+                let saltRounds = await bcrypt.genSalt(10)
+                password = await bcrypt.hash(password, saltRounds)
+                
             }
         }
     
             if (address) {
-                if (validation.isValidBody(address)) return res.status(400).send({ status: false, message: "Please enter address and it should be in object!" })       
+                if (!validation.isValidBody(address)) return res.status(400).send({ status: false, message: "Please enter address and it should be in object!" })       
                 if (address.shipping) {
                     if (address.shipping.street) {
                         if (!validation.streetRegex) {
                             return res.status(400).send({ status: false, message: "Invalid Shipping street" })
-                        } verifyUser.address.shipping.street = address.shipping.street
+                        }
                     }
     
                     if (address.shipping.city) {
                         if (!validation.cityRegex(address.shipping.city)) {
                             return res.status(400).send({ status: false, message: "Invalid Shipping city" })
-                        } verifyUser.address.shipping.city = address.shipping.city
+                        }// verifyUser.address.shipping.city = address.shipping.city
                     }
     
                     if (address.shipping.pincode) {
                         if (!validation.isValidPinCode(address.shipping.pincode)) {
                             return res.status(400).send({ status: false, message: "Invalid Shipping pincode" })
-                        }verifyUser.address.shipping.pincode = address.shipping.pincode
+                        } 
                     }
                 }
     
@@ -304,32 +305,30 @@ const updateUser = async function(req, res){
                     if (address.billing.street) {
                         if (!validation.streetRegex(address.billing.street)) {
                             return res.status(400).send({ status: false, message: "Invalid billing street" })
-                        } verifyUser.address.billing.street = address.billing.street
+                        } 
                     }
     
                     if (address.billing.city) {
                         if (!validation.cityRegex(address.billing.city)) {
                             return res.status(400).send({ status: false, message: "Invalid billing city" })
-                        } verifyUser.address.billing.city = address.billing.city
+                        } 
                     }
     
                     if (address.billing.pincode) {
                         if (!validation.isValidPinCode(address.billing.pincode)) {
                             return res.status(400).send({ status: false, message: "Invalid billing pincode" })
-                        } verifyUser.address.billing.pincode = address.billing.pincode
+                        } 
                     }
                 }
             }
-            verifyUser.save()
-            res.status(200).send({ status: true, message: "User profile details", data: verifyUser })
+            
+             let updatedData = await userModel.findOneAndUpdate({_id : userId}, data, {new : true})
+            res.status(200).send({ status: true, message: "User profile details", data: updatedData })
         }
     
         catch(error) {
             console.log(error)
             res.status(500).send({ status: false, message: error.message })
-    
-        
-    
     }
     }
 
